@@ -95,7 +95,7 @@
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(82, 56, 223, 0.4);
             border: 1px solid rgba(245, 244, 252, 0.2);
-            pointer-events: none;
+            /* pointer-events: none; 제거 완료 -> 클릭 및 제어 가능 */
         }
 
         /* 2. QR 코드 래퍼 (드래그 담당) */
@@ -197,23 +197,20 @@
         var player;
         function onYouTubeIframeAPIReady() {
             // 영상 id 입력
-            const videoId1 = 'uZadbAuGMDA'; // 첫 번째 영상 ID
-            const videoId2 = 'uZadbAuGMDA'; // 두 번째 영상 ID
+            const videoId1 = 'uZadbAuGMDA'; // 첫 번째 영상 ID_SKT CCaaS 소개
+            const videoId2 = 'dGxswvjfq_U'; // 두 번째 영상 ID_회사소개
 
             player = new YT.Player('mainVideo', {
                 height: '100%',
                 width: '100%',
-                // 첫 시작 비디오 ID는 생략하고 playlist로 한 번에 처리 가능함
                 playerVars: {
                     'autoplay': 1,
-                    'controls': 0,
+                    'controls': 1, // 0에서 1로 변경 완료 -> 유튜브 하단 제어창 활성화
                     'rel': 0,
                     'modestbranding': 1,
                     'loop': 1,
-                    // ★핵심: 여러 영상을 쉼표로 연결하여 입력 (순차 재생 후 무한루프)
                     'playlist': videoId1 + ',' + videoId2, 
-                    'mute': 1,
-                    'disablekb': 1
+                    'mute': 1
                 },
                 events: {
                     'onReady': onPlayerReady
@@ -269,7 +266,7 @@
             const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
 
             const dx = clientX - startX;
-            const dy = clientY - start
+            const dy = clientY - startY; 
 
             qrWrapper.style.left = (initialX + dx) + 'px';
             qrWrapper.style.top = (initialY + dy) + 'px';
