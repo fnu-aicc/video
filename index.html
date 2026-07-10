@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F&U with SKT CCaaS</title>
+    <title>F&U with SKT AICC</title>
     <style>
         /* 기본 여백 제거 및 화면 설정 */
         body, html {
@@ -62,9 +62,8 @@
             font-weight: 900;
             margin: 0;
             letter-spacing: 3px;
-            color: #ffffff; /* 흰색 글씨 */
+            color: #ffffff;
             
-            /* 다중 text-shadow를 이용한 3D 입체 효과 구현 */
             text-shadow: 
                 0 1px 0 #cccccc, 
                 0 2px 0 #c9c9c9, 
@@ -95,42 +94,79 @@
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(82, 56, 223, 0.4);
             border: 1px solid rgba(245, 244, 252, 0.2);
-            /* pointer-events: none; 제거 완료 -> 클릭 및 제어 가능 */
         }
 
-        /* 2. QR 코드 래퍼 (드래그 담당) */
+        /* 2. QR 코드 래퍼 (절대 위치 및 드래그 제어) */
         .qr-wrapper {
             position: absolute;
             top: 8%;
             right: 5%;
-            width: 12vw;
-            max-width: 200px;
             z-index: 15;
             cursor: grab;
             user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .qr-wrapper:active {
             cursor: grabbing;
         }
 
-        /* QR 코드 이미지 (플로팅 애니메이션 담당) */
-        .qr-code {
-            width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            box-sizing: border-box;
-            -webkit-user-drag: none;
-            /* 둥둥 떠다니는 애니메이션 추가 */
+        /* 플로팅 애니메이션 전용 내부 래퍼 */
+        .qr-floating-group {
             animation: float 4s ease-in-out infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
+        /* 강조된 QR 안내 뱃지 */
+        .qr-badge {
+            background: linear-gradient(135deg, #FF3366, #5238DF);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1.4vw;
+            font-weight: bold;
+            margin-bottom: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+            /* 시선을 끄는 펄스 애니메이션 */
+            animation: pulse 2s infinite;
+        }
+
+        /* QR 이미지를 감싸는 강조 박스 */
+        .qr-box {
+            width: 12vw;
+            max-width: 200px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 20px;
+            box-sizing: border-box;
+            /* 네온 글로우 효과 및 입체감 */
+            box-shadow: 0 0 25px rgba(82, 56, 223, 0.8), 0 10px 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid #5238DF;
+        }
+
+        .qr-code-img {
+            width: 100%;
+            display: block;
+            border-radius: 10px;
+            -webkit-user-drag: none;
+        }
+
+        /* 애니메이션 키프레임 */
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-15px); }
             100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         /* 재생 시작 오버레이 */
@@ -181,9 +217,14 @@
             <div id="mainVideo"></div>
         </div>
         
-        <!-- 래퍼 영역(드래그)과 이미지 영역(플로팅) 분리 적용 -->
+        <!-- QR 코드 영역: 안내 문구와 박스를 그룹화하여 디자인 적용 -->
         <div class="qr-wrapper" id="draggableQrWrapper">
-            <img src="qrcode.png" alt="QR Code" class="qr-code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Placeholder'">
+            <div class="qr-floating-group">
+                <div class="qr-badge">이벤트 참여하고 🎁경품🎁 받기!</div>
+                <div class="qr-box">
+                    <img src="qrcode.png" alt="QR Code" class="qr-code-img" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Placeholder'">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -197,15 +238,15 @@
         var player;
         function onYouTubeIframeAPIReady() {
             // 영상 id 입력
-            const videoId1 = 'uZadbAuGMDA'; // 첫 번째 영상 ID_SKT CCaaS 소개
-            const videoId2 = 'dGxswvjfq_U'; // 두 번째 영상 ID_회사소개
+            const videoId1 = 'uZadbAuGMDA'; 
+            const videoId2 = 'uZadbAuGMDA'; 
 
             player = new YT.Player('mainVideo', {
                 height: '100%',
                 width: '100%',
                 playerVars: {
                     'autoplay': 1,
-                    'controls': 1, // 0에서 1로 변경 완료 -> 유튜브 하단 제어창 활성화
+                    'controls': 1, 
                     'rel': 0,
                     'modestbranding': 1,
                     'loop': 1,
@@ -266,7 +307,7 @@
             const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
 
             const dx = clientX - startX;
-            const dy = clientY - startY; 
+            const dy = clientY - startY;
 
             qrWrapper.style.left = (initialX + dx) + 'px';
             qrWrapper.style.top = (initialY + dy) + 'px';
