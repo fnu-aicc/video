@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F&U with SKT CCaaS</title>
+    <style>
+        /* 기본 여백 제거 및 화면 꽉 차게 설정 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            cursor: pointer;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 백월 이미지 */
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+        }
+
+        /* 중앙 상단 타이틀 */
+        .title {
+            position: absolute;
+            top: 5%;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+            color: #ffffff;
+            font-size: 4.5vw;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+        }
+
+        /* 중앙 영상 컨테이너 */
+        .video-container {
+            position: absolute;
+            top: 52%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70vw;
+            height: 39.375vw;
+            max-height: 70vh;
+            z-index: 5;
+            background-color: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            /* 사용자가 유튜브 플레이어를 직접 클릭하여 일시정지하는 것을 방지 */
+            pointer-events: none; 
+        }
+
+        /* 우측 상단 QR 코드 */
+        .qr-code {
+            position: absolute;
+            top: 8%;
+            right: 5%;
+            width: 12vw;
+            max-width: 250px;
+            z-index: 15;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 재생 시작 유도 오버레이 */
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 3vw;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- 클릭 유도 오버레이 -->
+        <div class="play-overlay" id="playOverlay">
+            화면을 클릭하여 소리 재생 시작
+        </div>
+
+        <img src="background.jpg" alt="Background" class="bg-image" onerror="this.style.opacity='0'">
+        <h1 class="title">F&U with SKT CCaaS</h1>
+        
+        <div class="video-container">
+            <!-- 유튜브 영상이 삽입될 영역 -->
+            <div id="mainVideo"></div>
+        </div>
+        
+        <img src="qrcode.png" alt="QR Code" class="qr-code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Placeholder'">
+    </div>
+
+    <script>
+        // 1. 유튜브 IFrame Player API 코드 비동기 로드
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 2. API 코드가 다운로드된 후 플레이어 생성
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('mainVideo', {
+                height: '100%',
+                width: '100%',
+                videoId: 'uZadbAuGMDA', // ★수정 필요: 유튜브 영상의 고유 ID 입력★
+                playerVars: {
+                    'autoplay': 1,      // 자동재생
+                    'controls': 0,      // 컨트롤러 숨김
+                    'rel': 0,           // 추천영상 표시 안함
+                    'modestbranding': 1,// 유튜브 로고 최소화
+                    'loop': 1,          // 반복재생
+                    'playlist': 'uZadbAuGMDA', // ★수정 필요: 반복재생을 위해 videoId와 동일한 ID 재입력★
+                    'mute': 1,          // 초기 음소거 (브라우저 정책 우회용)
+                    'disablekb': 1      // 키보드 조작 비활성화
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        // 3. 플레이어 준비 완료 시 실행
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        // 4. 화면 클릭 이벤트 처리 (소리 활성화)
+        document.addEventListener("DOMContentLoaded", function() {
+            const overlay = document.getElementById('playOverlay');
+            
+            document.body.addEventListener('click', function() {
+                // 클릭 시 유튜브 영상 음소거 해제 및 볼륨 최대화
+                if (player && typeof player.unMute === 'function') {
+                    player.unMute();
+                    player.setVolume(100);
+                }
+                // 오버레이 숨김 및 커서 복구
+                overlay.style.display = 'none';
+                document.body.style.cursor = 'default';
+            }, { once: true }); // 최초 1회만 동작
+        });
+    </script>
+</body>
+</html>
